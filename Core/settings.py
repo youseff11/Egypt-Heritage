@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-fazc!0f!mwz%gz__yg7e!v!^o^9ukkca!u+tctdl*yk@a2k$w!
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
