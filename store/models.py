@@ -99,6 +99,8 @@ class Place(models.Model):
     # Media
     main_image = models.ImageField(upload_to='places/', blank=True, null=True)
     video_url = models.URLField(blank=True)
+    panorama_image = models.ImageField(upload_to='places/panorama/', blank=True, null=True,
+                                        help_text="360° panoramic image for VR viewer")
 
     # Stats
     rating = models.FloatField(default=4.0)
@@ -158,6 +160,113 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.place.name}"
+
+
+# ─── Doctor ──────────────────────────────────────────────────────
+class Doctor(models.Model):
+    SPECIALIZATION_CHOICES = [
+        ('dermatology', 'Dermatology'),
+        ('rheumatology', 'Rheumatology'),
+        ('physiotherapy', 'Physiotherapy'),
+        ('orthopedics', 'Orthopedics'),
+        ('respiratory', 'Respiratory Medicine'),
+        ('balneotherapy', 'Balneotherapy'),
+        ('hydrotherapy', 'Hydrotherapy'),
+        ('naturopathy', 'Naturopathic Medicine'),
+        ('general', 'General Medicine'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_profile', null=True, blank=True)
+    name = models.CharField(max_length=200)
+    name_ar = models.CharField(max_length=200, blank=True)
+    slug = models.SlugField(unique=True, blank=True)
+    specialization = models.CharField(max_length=30, choices=SPECIALIZATION_CHOICES)
+    title = models.CharField(max_length=100, blank=True, help_text="e.g. Professor, Consultant")
+    bio = models.TextField(blank=True)
+    bio_ar = models.TextField(blank=True)
+    photo = models.ImageField(upload_to='doctors/', blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    years_experience = models.IntegerField(default=0)
+    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=300)
+    available_days = models.CharField(max_length=200, blank=True, help_text="e.g. Sun,Mon,Tue,Wed")
+    available_hours = models.CharField(max_length=100, blank=True, help_text="e.g. 9:00 AM - 5:00 PM")
+
+    # Linked to medical places
+    places = models.ManyToManyField(Place, related_name='doctors', blank=True,
+                                    limit_choices_to={'place_type': 'medical'})
+
+    rating = models.FloatField(default=4.0)
+    total_reviews = models.IntegerField(default=0)
+    total_cases = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def stars_range(self):
+        return range(int(self.rating))
+
+    def __str__(self):
+        return f"Dr. {self.name}"
+
+
+class DoctorCase(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='cases')
+    patient_name = models.CharField(max_length=100, help_text="Anonymized or with consent")
+    condition = models.CharField(max_length=200)
+    treatment = models.TextField()
+    outcome = models.TextField(blank=True)
+    duration_weeks = models.IntegerField(default=1)
+    is_success = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Case: {self.condition} - Dr. {self.doctor.name}"
+
+
+class DoctorReview(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField(default=5)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['doctor', 'user']
+
+    def __str__(self):
+        return f"{self.user.username} reviewed Dr. {self.doctor.name}"
+
+
+class DoctorBooking(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_bookings')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='bookings')
+    place = models.ForeignKey(Place, on_delete=models.SET_NULL, null=True, blank=True)
+    date = models.DateField()
+    time = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    symptoms = models.TextField(blank=True, help_text="Describe your symptoms")
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} → Dr. {self.doctor.name} ({self.date})"
 
 
 # ─── Itinerary ───────────────────────────────────────────────────

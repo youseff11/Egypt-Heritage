@@ -213,6 +213,36 @@
                 <p class="text-muted">No reviews yet. Be the first!</p>
                 {% endfor %}
             </div>
+
+            <!-- Doctors (for medical places) -->
+            {% if doctors %}
+            <div class="detail-card">
+                <h3><i class="fas fa-user-md me-2" style="color:var(--teal);"></i>Available Doctors ({{ doctors|length }})</h3>
+                {% for doc in doctors %}
+                <a href="{% url 'doctor_detail' doc.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background:var(--sand-light);border-radius:12px;transition:all 0.3s;border-left:4px solid var(--teal);">
+                        {% if doc.photo %}
+                            <img src="{{ doc.photo.url }}" alt="Dr. {{ doc.name }}" style="width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid var(--gold);">
+                        {% else %}
+                            <div style="width:60px;height:60px;border-radius:50%;background:var(--sand);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.3rem;"><i class="fas fa-user-md"></i></div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <strong>Dr. {{ doc.name }}</strong>
+                            {% if doc.title %}<small class="text-muted ms-1">{{ doc.title }}</small>{% endif %}
+                            <div style="font-size:0.82rem;color:var(--text-light);">
+                                {{ doc.get_specialization_display }} · ⭐ {{ doc.rating }} · {{ doc.years_experience }} yrs exp.
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div style="font-weight:600;color:var(--gold);">{{ doc.consultation_fee }} EGP</div>
+                            <small class="text-muted">{{ doc.total_cases }} cases</small>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                <a href="{% url 'doctor_list' %}?place={{ place.slug }}" class="btn btn-outline-gold btn-sm w-100 mt-2"><i class="fas fa-search me-2"></i>View All Doctors</a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Sidebar -->
@@ -241,6 +271,9 @@
                 <div class="action-btns">
                     <a href="{% url 'booking_create' place.slug %}" class="btn btn-gold w-100 mb-3">
                         <i class="fas fa-calendar-check me-2"></i>Book Now
+                    </a>
+                    <a href="{% url 'vr_viewer' place.slug %}" class="btn btn-blue w-100 mb-3">
+                        <i class="fas fa-vr-cardboard me-2"></i>360° Virtual Tour
                     </a>
 
                     {% if user.is_authenticated and user_itineraries %}

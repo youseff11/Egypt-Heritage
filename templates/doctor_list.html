@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Find Doctors{% endblock %}
+{% block extra_css %}
+<style>
+    .doc-header {
+        background: linear-gradient(135deg, var(--dark), #0d3b66);
+        padding: 50px 0 40px; color: white;
+    }
+    .filter-bar {
+        background: white; border-radius: var(--radius); padding: 20px 24px;
+        box-shadow: var(--shadow); margin-bottom: 30px; margin-top: -20px;
+        position: relative; z-index: 5;
+    }
+    .filter-bar .form-select, .filter-bar .form-control {
+        border-radius: 10px; border: 1px solid #e0e0e0; font-size: 0.9rem;
+    }
+    .doc-card {
+        background: white; border-radius: var(--radius); padding: 0;
+        box-shadow: var(--shadow); transition: all 0.3s; overflow: hidden; height: 100%;
+    }
+    .doc-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+    .doc-card .doc-photo {
+        width: 100%; height: 200px; object-fit: cover;
+        background: linear-gradient(135deg, var(--sand), var(--gold-light));
+        display: flex; align-items: center; justify-content: center;
+        color: var(--gold); font-size: 3rem;
+    }
+    .doc-card .doc-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .doc-card .doc-body { padding: 20px; }
+    .doc-card .doc-name { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+    .doc-card .doc-spec {
+        display: inline-block; padding: 3px 12px; border-radius: 15px;
+        font-size: 0.75rem; font-weight: 600;
+        background: linear-gradient(135deg, var(--teal)22, var(--blue-light)22);
+        color: var(--blue);
+    }
+    .doc-card .doc-stats { display: flex; gap: 16px; margin-top: 12px; font-size: 0.82rem; color: var(--text-light); }
+    .doc-card .doc-stats i { color: var(--gold); margin-right: 3px; }
+    .doc-card .doc-fee {
+        background: var(--sand); padding: 4px 12px; border-radius: 15px;
+        font-size: 0.82rem; font-weight: 600; color: var(--blue);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<section class="doc-header"><div class="container">
+    <h1><i class="fas fa-user-md me-2" style="color:var(--gold);"></i>Find Doctors</h1>
+    <p style="opacity:0.8;">Expert physicians at our wellness & medical destinations</p>
+</div></section>
+<div class="container">
+    <div class="filter-bar">
+        <form method="GET" action="{% url 'doctor_list' %}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Search doctors..." value="{{ q }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="specialization" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Specializations</option>
+                        {% for val, label in specializations %}
+                        <option value="{{ val }}" {% if current_spec == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="place" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Centers</option>
+                        {% for p in medical_places %}
+                        <option value="{{ p.slug }}" {% if current_place == p.slug %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-gold w-100"><i class="fas fa-search me-1"></i> Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        {% for doc in doctors %}
+        <div class="col-md-6 col-lg-4 fade-up">
+            <a href="{% url 'doctor_detail' doc.slug %}" style="text-decoration:none;color:inherit;">
+                <div class="doc-card">
+                    <div class="doc-photo">
+                        {% if doc.photo %}<img src="{{ doc.photo.url }}" alt="Dr. {{ doc.name }}">
+                        {% else %}<i class="fas fa-user-md"></i>{% endif %}
+                    </div>
+                    <div class="doc-body">
+                        <h5 class="doc-name">Dr. {{ doc.name }}</h5>
+                        {% if doc.title %}<small class="text-muted">{{ doc.title }}</small>{% endif %}
+                        <div class="mt-2"><span class="doc-spec">{{ doc.get_specialization_display }}</span></div>
+                        <div class="doc-stats">
+                            <span><i class="fas fa-star"></i>{{ doc.rating }}</span>
+                            <span><i class="fas fa-comment"></i>{{ doc.total_reviews }} reviews</span>
+                            <span><i class="fas fa-briefcase-medical"></i>{{ doc.total_cases }} cases</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span style="font-size:0.82rem;color:var(--text-light);"><i class="fas fa-clock me-1"></i>{{ doc.years_experience }} yrs exp.</span>
+                            <span class="doc-fee">{{ doc.consultation_fee }} EGP</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center" style="padding:60px;">
+            <i class="fas fa-user-md" style="font-size:4rem;color:var(--gold-light);"></i>
+            <h3 class="mt-3">No Doctors Found</h3>
+            <p class="text-muted">Try adjusting your search filters.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

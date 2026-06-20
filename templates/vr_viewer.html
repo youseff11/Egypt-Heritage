@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}360° VR - {{ place.name }}{% endblock %}
+{% block extra_css %}
+<style>
+    .vr-page { padding: 30px 0; }
+    .vr-header {
+        background: linear-gradient(135deg, var(--dark), #0d1b2a);
+        padding: 40px 0; color: white; margin-bottom: 30px;
+    }
+    .vr-container {
+        width: 100%;
+        height: 70vh;
+        min-height: 400px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        background: #111;
+        cursor: grab;
+    }
+    .vr-container:active { cursor: grabbing; }
+    .vr-container canvas { width: 100% !important; height: 100% !important; }
+    .vr-controls {
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+        display: flex; gap: 10px; z-index: 10;
+    }
+    .vr-controls button {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2);
+        cursor: pointer; font-size: 1rem; backdrop-filter: blur(10px);
+        transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    }
+    .vr-controls button:hover { background: var(--gold); color: var(--dark); }
+    .vr-info {
+        position: absolute; top: 20px; left: 20px; z-index: 10;
+        background: rgba(0,0,0,0.6); color: white; padding: 12px 20px;
+        border-radius: 12px; backdrop-filter: blur(10px); font-size: 0.9rem;
+    }
+    .vr-placeholder {
+        width: 100%; height: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: rgba(255,255,255,0.6); text-align: center; padding: 40px;
+    }
+    .vr-placeholder i { font-size: 5rem; margin-bottom: 20px; color: var(--gold); }
+    .vr-placeholder p { max-width: 500px; line-height: 1.8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="vr-header">
+    <div class="container">
+        <nav style="font-size:0.85rem;margin-bottom:12px;">
+            <a href="{% url 'place_detail' place.slug %}" style="color:var(--gold);text-decoration:none;">← Back to {{ place.name }}</a>
+        </nav>
+        <h1><i class="fas fa-vr-cardboard me-2" style="color:var(--gold);"></i>360° Virtual Tour</h1>
+        <p style="opacity:0.8;">{{ place.name }} - {{ place.city }}, {{ place.governorate }}</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="vr-container" id="vrContainer">
+        {% if place.panorama_image %}
+        <div class="vr-info">
+            <i class="fas fa-hand-pointer me-2"></i>Drag to look around | Scroll to zoom
+        </div>
+        <div class="vr-controls">
+            <button onclick="vrZoom(-1)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+            <button onclick="vrZoom(1)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+            <button onclick="vrReset()" title="Reset"><i class="fas fa-sync-alt"></i></button>
+            <button onclick="vrAutoRotate()" title="Auto Rotate"><i class="fas fa-play"></i></button>
+            <button onclick="toggleFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+        </div>
+        {% elif place.main_image %}
+        <div class="vr-info">
+            <i class="fas fa-hand-pointer me-2"></i>Drag to rotate the image 360°
+        </div>
+        <div class="vr-controls">
+            <button onclick="vrZoom(-1)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+            <button onclick="vrZoom(1)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+            <button onclick="vrReset()" title="Reset"><i class="fas fa-sync-alt"></i></button>
+            <button onclick="vrAutoRotate()" title="Auto Rotate"><i class="fas fa-play"></i></button>
+            <button onclick="toggleFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+        </div>
+        {% else %}
+        <div class="vr-placeholder">
+            <i class="fas fa-vr-cardboard"></i>
+            <h3>360° View Coming Soon</h3>
+            <p>No panoramic image has been uploaded for this location yet. Check back later for an immersive virtual tour experience!</p>
+            <a href="{% url 'place_detail' place.slug %}" class="btn btn-gold mt-3"><i class="fas fa-arrow-left me-2"></i>Back to Details</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if place.panorama_image or place.main_image %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function() {
+    const container = document.getElementById('vrContainer');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.insertBefore(renderer.domElement, container.firstChild);
+
+    // Load image as sphere texture (equirectangular projection for 360)
+    const imgUrl = "{% if place.panorama_image %}{{ place.panorama_image.url }}{% elif place.main_image %}{{ place.main_image.url }}{% endif %}";
+    const loader = new THREE.TextureLoader();
+    loader.load(imgUrl, function(texture) {
+        const geometry = new THREE.SphereGeometry(500, 60, 40);
+        geometry.scale(-1, 1, 1); // Invert sphere so texture is on the inside
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+    });
+
+    camera.position.set(0, 0, 0.1);
+
+    // Mouse/Touch controls
+    let isDragging = false;
+    let prevX = 0, prevY = 0;
+    let lon = 0, lat = 0;
+    let phi = 0, theta = 0;
+    let autoRotating = false;
+    let fov = 75;
+
+    container.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+    container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        lon -= (e.clientX - prevX) * 0.3;
+        lat += (e.clientY - prevY) * 0.3;
+        lat = Math.max(-85, Math.min(85, lat));
+        prevX = e.clientX; prevY = e.clientY;
+    });
+    container.addEventListener('mouseup', () => isDragging = false);
+    container.addEventListener('mouseleave', () => isDragging = false);
+
+    // Touch support
+    container.addEventListener('touchstart', (e) => { isDragging = true; prevX = e.touches[0].clientX; prevY = e.touches[0].clientY; });
+    container.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        lon -= (e.touches[0].clientX - prevX) * 0.3;
+        lat += (e.touches[0].clientY - prevY) * 0.3;
+        lat = Math.max(-85, Math.min(85, lat));
+        prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+    }, { passive: false });
+    container.addEventListener('touchend', () => isDragging = false);
+
+    // Scroll zoom
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        fov += e.deltaY * 0.05;
+        fov = Math.max(30, Math.min(100, fov));
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+    }, { passive: false });
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        if (autoRotating) lon += 0.08;
+        phi = THREE.MathUtils.degToRad(90 - lat);
+        theta = THREE.MathUtils.degToRad(lon);
+        camera.lookAt(
+            500 * Math.sin(phi) * Math.cos(theta),
+            500 * Math.cos(phi),
+            500 * Math.sin(phi) * Math.sin(theta)
+        );
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Global functions for buttons
+    window.vrZoom = function(dir) {
+        fov += dir * 5;
+        fov = Math.max(30, Math.min(100, fov));
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+    };
+    window.vrReset = function() { lon = 0; lat = 0; fov = 75; camera.fov = fov; camera.updateProjectionMatrix(); };
+    window.vrAutoRotate = function() { autoRotating = !autoRotating; };
+    window.toggleFullscreen = function() {
+        if (!document.fullscreenElement) container.requestFullscreen();
+        else document.exitFullscreen();
+    };
+})();
+</script>
+{% endif %}
+{% endblock %}

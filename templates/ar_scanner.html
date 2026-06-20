@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block title %}AR Location Scanner{% endblock %}
+{% block extra_css %}
+<style>
+    .ar-header {
+        background: linear-gradient(135deg, #1a1a4e, var(--dark));
+        padding: 40px 0; color: white; text-align: center;
+    }
+    .ar-header .ar-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--teal), var(--blue-light));
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 20px; font-size: 2rem; color: white;
+    }
+    .ar-container {
+        max-width: 700px; margin: 30px auto;
+    }
+    .camera-box {
+        position: relative; width: 100%; border-radius: var(--radius);
+        overflow: hidden; box-shadow: var(--shadow-lg); background: #111;
+        min-height: 400px;
+    }
+    .camera-box video {
+        width: 100%; height: auto; display: block;
+    }
+    .camera-box canvas { display: none; }
+    .camera-overlay {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        pointer-events: none;
+    }
+    .scan-frame {
+        width: 220px; height: 220px; border: 3px solid var(--gold);
+        border-radius: 20px; position: relative;
+        animation: pulse-frame 2s infinite;
+    }
+    .scan-frame::before, .scan-frame::after {
+        content: ''; position: absolute; width: 30px; height: 30px;
+        border-color: var(--gold); border-style: solid;
+    }
+    .scan-frame::before { top: -3px; left: -3px; border-width: 4px 0 0 4px; border-radius: 10px 0 0 0; }
+    .scan-frame::after { bottom: -3px; right: -3px; border-width: 0 4px 4px 0; border-radius: 0 0 10px 0; }
+    @keyframes pulse-frame { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .scan-label {
+        margin-top: 16px; background: rgba(0,0,0,0.7); color: white;
+        padding: 8px 20px; border-radius: 20px; font-size: 0.85rem;
+        backdrop-filter: blur(10px);
+    }
+    .ar-actions {
+        display: flex; gap: 12px; justify-content: center; margin-top: 20px;
+    }
+    .ar-actions button {
+        padding: 12px 28px; border-radius: 25px; font-weight: 600;
+        border: none; cursor: pointer; font-size: 0.95rem; transition: all 0.3s;
+    }
+    .btn-capture { background: linear-gradient(135deg, var(--gold), #D4AF37); color: var(--dark); }
+    .btn-capture:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(200,169,81,0.4); }
+    .btn-locate { background: linear-gradient(135deg, var(--teal), var(--blue-light)); color: white; }
+    .btn-locate:hover { transform: translateY(-2px); }
+
+    .result-card {
+        background: white; border-radius: var(--radius); padding: 28px;
+        box-shadow: var(--shadow-lg); margin-top: 24px;
+        border-left: 5px solid var(--gold); display: none;
+    }
+    .result-card.show { display: block; animation: slideUp 0.4s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .result-card h4 { color: var(--dark); margin-bottom: 12px; }
+    .result-card .match-badge {
+        background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;
+        padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    .location-info {
+        background: var(--sand-light); border-radius: 12px; padding: 16px;
+        margin-top: 16px; font-size: 0.9rem;
+    }
+    .camera-off {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; min-height: 400px; color: rgba(255,255,255,0.5);
+        text-align: center; padding: 40px;
+    }
+    .camera-off i { font-size: 4rem; margin-bottom: 16px; color: var(--teal); }
+    .nearby-list { margin-top: 16px; }
+    .nearby-item {
+        display: flex; align-items: center; gap: 12px; padding: 10px;
+        background: var(--sand-light); border-radius: 10px; margin-bottom: 8px;
+        text-decoration: none; color: var(--dark); transition: all 0.3s;
+    }
+    .nearby-item:hover { background: var(--sand); transform: translateX(4px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="ar-header">
+    <div class="container">
+        <div class="ar-icon"><i class="fas fa-camera"></i></div>
+        <h1>AR Location Scanner</h1>
+        <p style="opacity:0.85;">Point your camera at a landmark or use GPS to identify nearby places</p>
+    </div>
+</section>
+
+<div class="ar-container">
+    <div class="camera-box" id="cameraBox">
+        <div class="camera-off" id="cameraOff">
+            <i class="fas fa-camera"></i>
+            <h4>Camera Ready</h4>
+            <p>Click "Start Camera" to begin scanning,<br>or "Find My Location" to discover nearby places</p>
+        </div>
+        <video id="arVideo" autoplay playsinline style="display:none;"></video>
+        <canvas id="arCanvas"></canvas>
+        <div class="camera-overlay" id="scanOverlay" style="display:none;">
+            <div class="scan-frame"></div>
+            <div class="scan-label"><i class="fas fa-crosshairs me-2"></i>Scanning for landmarks...</div>
+        </div>
+    </div>
+
+    <div class="ar-actions">
+        <button class="btn-capture" id="btnCapture" onclick="startCamera()">
+            <i class="fas fa-camera me-2"></i>Start Camera
+        </button>
+        <button class="btn-locate" onclick="findLocation()">
+            <i class="fas fa-map-marker-alt me-2"></i>Find My Location
+        </button>
+        <button class="btn-capture" id="btnSnap" onclick="captureAndIdentify()" style="display:none;">
+            <i class="fas fa-bullseye me-2"></i>Identify Place
+        </button>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" id="resultCard">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h4 id="resultName"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>Place Name</h4>
+                <p class="text-muted mb-0" id="resultLocation">City, Governorate</p>
+            </div>
+            <span class="match-badge" id="matchBadge"><i class="fas fa-check me-1"></i>Located</span>
+        </div>
+        <div class="location-info">
+            <div class="row">
+                <div class="col-6"><strong>Type:</strong> <span id="resultType"></span></div>
+                <div class="col-6"><strong>Rating:</strong> <span id="resultRating"></span></div>
+                <div class="col-6 mt-2"><strong>Lat:</strong> <span id="resultLat"></span></div>
+                <div class="col-6 mt-2"><strong>Lng:</strong> <span id="resultLng"></span></div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <a id="resultLink" href="#" class="btn btn-gold"><i class="fas fa-info-circle me-2"></i>View Details</a>
+            <a id="resultMap" href="#" target="_blank" class="btn btn-blue"><i class="fas fa-map me-2"></i>Open Map</a>
+        </div>
+    </div>
+
+    <!-- Nearby Places -->
+    <div class="result-card" id="nearbyCard">
+        <h4><i class="fas fa-location-arrow me-2" style="color:var(--teal);"></i>Nearby Places</h4>
+        <p class="text-muted" id="userCoords"></p>
+        <div class="nearby-list" id="nearbyList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const PLACES = {{ places_json|safe }};
+let stream = null;
+
+function startCamera() {
+    const video = document.getElementById('arVideo');
+    const cameraOff = document.getElementById('cameraOff');
+    const overlay = document.getElementById('scanOverlay');
+    const btnSnap = document.getElementById('btnSnap');
+    const btnCapture = document.getElementById('btnCapture');
+
+    if (stream) {
+        // Stop camera
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+        video.style.display = 'none';
+        overlay.style.display = 'none';
+        cameraOff.style.display = 'flex';
+        btnSnap.style.display = 'none';
+        btnCapture.innerHTML = '<i class="fas fa-camera me-2"></i>Start Camera';
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    }).then(s => {
+        stream = s;
+        video.srcObject = s;
+        video.style.display = 'block';
+        cameraOff.style.display = 'none';
+        overlay.style.display = 'flex';
+        btnSnap.style.display = 'inline-block';
+        btnCapture.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Camera';
+    }).catch(err => {
+        alert('Camera access denied. Please allow camera permission and try again.');
+        console.error(err);
+    });
+}
+
+function captureAndIdentify() {
+    // Capture frame
+    const video = document.getElementById('arVideo');
+    const canvas = document.getElementById('arCanvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    // Use GPS to identify nearest place
+    if (navigator.geolocation) {
+        document.getElementById('btnSnap').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Identifying...';
+        navigator.geolocation.getCurrentPosition(pos => {
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            identifyNearest(userLat, userLng);
+            document.getElementById('btnSnap').innerHTML = '<i class="fas fa-bullseye me-2"></i>Identify Place';
+        }, err => {
+            // Fallback: show all places sorted by popularity
+            showResult(PLACES[0], 0, 0);
+            document.getElementById('btnSnap').innerHTML = '<i class="fas fa-bullseye me-2"></i>Identify Place';
+        });
+    } else {
+        showResult(PLACES[0], 0, 0);
+    }
+}
+
+function findLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
+        identifyNearest(userLat, userLng);
+        showNearby(userLat, userLng);
+    }, err => {
+        alert('Unable to get your location. Please enable location services.');
+    });
+}
+
+function calcDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function identifyNearest(userLat, userLng) {
+    let nearest = null, minDist = Infinity;
+    PLACES.forEach(p => {
+        const d = calcDistance(userLat, userLng, p.latitude, p.longitude);
+        if (d < minDist) { minDist = d; nearest = p; }
+    });
+    if (nearest) showResult(nearest, userLat, userLng, minDist);
+}
+
+function showResult(place, lat, lng, dist) {
+    const card = document.getElementById('resultCard');
+    document.getElementById('resultName').innerHTML = '<i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>' + place.name;
+    document.getElementById('resultLocation').textContent = place.city + ', ' + place.governorate;
+    document.getElementById('resultType').textContent = place.place_type === 'heritage' ? 'Heritage' : 'Wellness';
+    document.getElementById('resultRating').innerHTML = '⭐ ' + place.rating + '/5';
+    document.getElementById('resultLat').textContent = place.latitude.toFixed(4);
+    document.getElementById('resultLng').textContent = place.longitude.toFixed(4);
+    document.getElementById('resultLink').href = '/places/' + place.slug + '/';
+    document.getElementById('resultMap').href = 'https://maps.google.com/?q=' + place.latitude + ',' + place.longitude;
+    if (dist !== undefined) {
+        document.getElementById('matchBadge').innerHTML = '<i class="fas fa-check me-1"></i>' + dist.toFixed(1) + ' km away';
+    }
+    card.classList.add('show');
+}
+
+function showNearby(userLat, userLng) {
+    const sorted = PLACES.map(p => ({
+        ...p, dist: calcDistance(userLat, userLng, p.latitude, p.longitude)
+    })).sort((a, b) => a.dist - b.dist);
+
+    const card = document.getElementById('nearbyCard');
+    document.getElementById('userCoords').innerHTML = '<i class="fas fa-crosshairs me-1"></i> Your location: ' + userLat.toFixed(4) + ', ' + userLng.toFixed(4);
+    const list = document.getElementById('nearbyList');
+    list.innerHTML = '';
+    sorted.slice(0, 6).forEach(p => {
+        const icon = p.place_type === 'heritage' ? 'fa-landmark' : 'fa-spa';
+        const color = p.place_type === 'heritage' ? 'var(--gold)' : 'var(--teal)';
+        list.innerHTML += `
+            <a href="/places/${p.slug}/" class="nearby-item">
+                <i class="fas ${icon}" style="font-size:1.4rem;color:${color};width:36px;text-align:center;"></i>
+                <div class="flex-grow-1">
+                    <strong>${p.name}</strong>
+                    <div style="font-size:0.8rem;color:var(--text-light);">${p.city} · ⭐ ${p.rating}</div>
+                </div>
+                <span style="font-size:0.85rem;font-weight:600;color:var(--blue);">${p.dist.toFixed(1)} km</span>
+            </a>`;
+    });
+    card.classList.add('show');
+}
+</script>
+{% endblock %}

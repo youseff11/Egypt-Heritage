@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+{% block extra_css %}
+<style>
+    .doc-hero {
+        background: linear-gradient(135deg, var(--dark), #0d3b66);
+        padding: 50px 0 80px; color: white;
+    }
+    .doc-profile-card {
+        background: white; border-radius: var(--radius); padding: 32px;
+        box-shadow: var(--shadow-lg); margin-top: -50px; position: relative; z-index: 5;
+    }
+    .doc-avatar {
+        width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+        border: 4px solid var(--gold); margin-right: 24px;
+    }
+    .doc-avatar-placeholder {
+        width: 120px; height: 120px; border-radius: 50%; margin-right: 24px;
+        background: linear-gradient(135deg, var(--sand), var(--gold-light));
+        display: flex; align-items: center; justify-content: center;
+        color: var(--gold); font-size: 2.5rem; border: 4px solid var(--gold);
+    }
+    .info-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+        margin-right: 8px; margin-bottom: 8px;
+    }
+    .detail-card {
+        background: white; border-radius: var(--radius); padding: 28px;
+        box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .detail-card h4 {
+        font-size: 1.15rem; color: var(--dark); margin-bottom: 16px;
+        padding-bottom: 12px; border-bottom: 2px solid var(--sand);
+    }
+    .detail-card h4 i { color: var(--gold); margin-right: 8px; }
+    .case-card {
+        background: var(--sand-light); border-radius: 12px; padding: 18px;
+        margin-bottom: 12px; border-left: 4px solid var(--teal);
+    }
+    .case-card .case-outcome { font-size: 0.85rem; margin-top: 8px; }
+    .case-card .success-badge {
+        display: inline-block; padding: 2px 10px; border-radius: 10px;
+        font-size: 0.75rem; font-weight: 600;
+    }
+    .review-item {
+        background: var(--sand-light); border-radius: 12px; padding: 18px; margin-bottom: 12px;
+    }
+    .review-item .stars { color: var(--gold); font-size: 0.85rem; }
+    .place-link {
+        display: flex; align-items: center; gap: 12px; padding: 12px;
+        background: var(--sand-light); border-radius: 12px; margin-bottom: 8px;
+        text-decoration: none; color: var(--dark); transition: all 0.3s;
+    }
+    .place-link:hover { background: var(--sand); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="doc-hero"><div class="container">
+    <nav style="font-size:0.85rem;margin-bottom:16px;">
+        <a href="{% url 'doctor_list' %}" style="color:var(--gold);text-decoration:none;">← All Doctors</a>
+    </nav>
+    <h1 style="color:white;">Dr. {{ doctor.name }}</h1>
+</div></section>
+<div class="container">
+    <div class="doc-profile-card">
+        <div class="d-flex flex-wrap align-items-center">
+            {% if doctor.photo %}
+                <img src="{{ doctor.photo.url }}" alt="Dr. {{ doctor.name }}" class="doc-avatar">
+            {% else %}
+                <div class="doc-avatar-placeholder"><i class="fas fa-user-md"></i></div>
+            {% endif %}
+            <div class="flex-grow-1">
+                <h2 style="margin-bottom:4px;">Dr. {{ doctor.name }}</h2>
+                {% if doctor.name_ar %}<p style="font-family:'Cairo',sans-serif;color:var(--text-light);margin-bottom:8px;">د. {{ doctor.name_ar }}</p>{% endif %}
+                {% if doctor.title %}<p class="text-muted mb-2">{{ doctor.title }}</p>{% endif %}
+                <div class="mb-2">
+                    <span class="info-badge" style="background:linear-gradient(135deg,var(--teal)22,var(--blue-light)22);color:var(--blue);">
+                        <i class="fas fa-stethoscope"></i>{{ doctor.get_specialization_display }}
+                    </span>
+                    <span class="info-badge" style="background:var(--sand);color:var(--dark);">
+                        <i class="fas fa-star" style="color:var(--gold);"></i>{{ doctor.rating }}/5
+                    </span>
+                    <span class="info-badge" style="background:#d1e7dd;color:#0f5132;">
+                        <i class="fas fa-briefcase-medical"></i>{{ doctor.total_cases }} Cases
+                    </span>
+                    <span class="info-badge" style="background:#cff4fc;color:#055160;">
+                        <i class="fas fa-clock"></i>{{ doctor.years_experience }} Years Exp.
+                    </span>
+                </div>
+            </div>
+            <div class="text-end">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--gold);">{{ doctor.consultation_fee }} EGP</div>
+                <small class="text-muted">per consultation</small>
+                <div class="mt-2">
+                    <a href="{% url 'doctor_booking' doctor.slug %}" class="btn btn-gold"><i class="fas fa-calendar-check me-2"></i>Book Appointment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-3">
+        <div class="col-lg-8">
+            {% if doctor.bio %}
+            <div class="detail-card">
+                <h4><i class="fas fa-user"></i>About</h4>
+                <p style="line-height:1.8;">{{ doctor.bio }}</p>
+                {% if doctor.bio_ar %}<p style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;background:var(--sand-light);padding:14px;border-radius:10px;">{{ doctor.bio_ar }}</p>{% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Cases -->
+            <div class="detail-card">
+                <h4><i class="fas fa-file-medical"></i>Patient Cases ({{ cases|length }})</h4>
+                {% for case in cases %}
+                <div class="case-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>{{ case.condition }}</strong>
+                            <div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Patient: {{ case.patient_name }} · {{ case.duration_weeks }} weeks treatment</div>
+                        </div>
+                        <span class="success-badge" style="background:{% if case.is_success %}#d1e7dd;color:#0f5132;{% else %}#fff3cd;color:#856404;{% endif %}">
+                            {% if case.is_success %}<i class="fas fa-check-circle me-1"></i>Successful{% else %}<i class="fas fa-hourglass-half me-1"></i>Ongoing{% endif %}
+                        </span>
+                    </div>
+                    <p style="font-size:0.9rem;margin-top:8px;">{{ case.treatment }}</p>
+                    {% if case.outcome %}<div class="case-outcome"><strong>Outcome:</strong> {{ case.outcome }}</div>{% endif %}
+                </div>
+                {% empty %}
+                <p class="text-muted">No cases documented yet.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Reviews -->
+            <div class="detail-card">
+                <h4><i class="fas fa-comments"></i>Reviews ({{ reviews|length }})</h4>
+                {% if user.is_authenticated and not user_review %}
+                <form method="POST" class="mb-4 p-3" style="background:var(--sand-light);border-radius:12px;">
+                    {% csrf_token %}
+                    <div class="mb-3"><label class="form-label fw-semibold">Your Rating</label>{{ review_form.rating }}</div>
+                    <div class="mb-3">{{ review_form.comment }}</div>
+                    <button type="submit" name="submit_review" class="btn btn-gold"><i class="fas fa-paper-plane me-2"></i>Submit</button>
+                </form>
+                {% elif not user.is_authenticated %}
+                <p class="text-muted mb-3"><a href="{% url 'login' %}" style="color:var(--gold);">Login</a> to leave a review.</p>
+                {% endif %}
+                {% for r in reviews %}
+                <div class="review-item">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="font-weight:600;"><i class="fas fa-user-circle me-1" style="color:var(--gold);"></i>{{ r.user.first_name|default:r.user.username }}</span>
+                        <small class="text-muted">{{ r.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="stars mb-2">{% for i in "12345" %}{% if forloop.counter <= r.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}{% endfor %}</div>
+                    <p style="margin:0;font-size:0.9rem;">{{ r.comment }}</p>
+                </div>
+                {% empty %}<p class="text-muted">No reviews yet.</p>{% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="detail-card">
+                <h4><i class="fas fa-info-circle"></i>Info</h4>
+                <ul class="list-unstyled" style="font-size:0.92rem;">
+                    {% if doctor.phone %}<li class="py-2 border-bottom"><i class="fas fa-phone me-2" style="color:var(--gold);"></i>{{ doctor.phone }}</li>{% endif %}
+                    {% if doctor.email %}<li class="py-2 border-bottom"><i class="fas fa-envelope me-2" style="color:var(--gold);"></i>{{ doctor.email }}</li>{% endif %}
+                    {% if doctor.available_days %}<li class="py-2 border-bottom"><i class="fas fa-calendar-week me-2" style="color:var(--gold);"></i>{{ doctor.available_days }}</li>{% endif %}
+                    {% if doctor.available_hours %}<li class="py-2"><i class="fas fa-clock me-2" style="color:var(--gold);"></i>{{ doctor.available_hours }}</li>{% endif %}
+                </ul>
+                <a href="{% url 'doctor_booking' doctor.slug %}" class="btn btn-gold w-100 mt-2"><i class="fas fa-calendar-check me-2"></i>Book Now</a>
+            </div>
+            {% if places %}
+            <div class="detail-card">
+                <h4><i class="fas fa-hospital"></i>Available At</h4>
+                {% for p in places %}
+                <a href="{% url 'place_detail' p.slug %}" class="place-link">
+                    <i class="fas fa-spa" style="font-size:1.3rem;color:var(--teal);"></i>
+                    <div>
+                        <strong>{{ p.name }}</strong>
+                        <div style="font-size:0.8rem;color:var(--text-light);">{{ p.city }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

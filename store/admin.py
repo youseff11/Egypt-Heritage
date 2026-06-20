@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     UserProfile, Category, Place, PlaceImage,
-    Review, Itinerary, ItineraryItem, Booking, ContactMessage
+    Review, Itinerary, ItineraryItem, Booking, ContactMessage,
+    Doctor, DoctorCase, DoctorReview, DoctorBooking
 )
 
 
@@ -51,3 +52,30 @@ class BookingAdmin(admin.ModelAdmin):
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ['name', 'subject', 'is_read', 'created_at']
     list_filter = ['is_read']
+
+
+# ─── Doctor Models ───────────────────────────────────────────────
+class DoctorCaseInline(admin.TabularInline):
+    model = DoctorCase
+    extra = 1
+
+
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ['name', 'specialization', 'rating', 'total_cases', 'is_active']
+    list_filter = ['specialization', 'is_active']
+    search_fields = ['name', 'name_ar']
+    prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ['places']
+    inlines = [DoctorCaseInline]
+
+
+@admin.register(DoctorReview)
+class DoctorReviewAdmin(admin.ModelAdmin):
+    list_display = ['user', 'doctor', 'rating', 'created_at']
+
+
+@admin.register(DoctorBooking)
+class DoctorBookingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'doctor', 'date', 'status', 'created_at']
+    list_filter = ['status']

@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import UserProfile, Review, Itinerary, ItineraryItem, Booking, ContactMessage, Place
+from .models import (
+    UserProfile, Review, Itinerary, ItineraryItem, Booking,
+    ContactMessage, Place, Doctor, DoctorReview, DoctorBooking
+)
 
 
 class UserRegisterForm(UserCreationForm):
@@ -118,3 +121,32 @@ class PlaceAdminForm(forms.ModelForm):
             'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_trending': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+class DoctorReviewForm(forms.ModelForm):
+    class Meta:
+        model = DoctorReview
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
+            'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Share your experience with this doctor...'}),
+        }
+
+
+class DoctorBookingForm(forms.ModelForm):
+    class Meta:
+        model = DoctorBooking
+        fields = ['date', 'time', 'place', 'symptoms', 'notes']
+        widgets = {
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'place': forms.Select(attrs={'class': 'form-select'}),
+            'symptoms': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Describe your symptoms or reason for visit...'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Any additional notes...'}),
+        }
+
+    def __init__(self, *args, doctor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if doctor:
+            self.fields['place'].queryset = doctor.places.all()
+            self.fields['place'].required = False

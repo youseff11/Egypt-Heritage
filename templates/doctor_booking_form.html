@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Book Dr. {{ doctor.name }}{% endblock %}
+{% block extra_css %}
+<style>
+    .page-header { background: linear-gradient(135deg, var(--dark), #0d3b66); padding: 50px 0 40px; color: white; }
+    .booking-card {
+        background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+        overflow: hidden; max-width: 750px; margin: 30px auto;
+    }
+    .doc-banner {
+        background: var(--sand-light); padding: 24px; display: flex; align-items: center; gap: 20px;
+        border-bottom: 2px solid var(--sand);
+    }
+    .doc-banner img, .doc-banner .ph {
+        width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold);
+    }
+    .doc-banner .ph {
+        display: flex; align-items: center; justify-content: center;
+        background: var(--sand); color: var(--gold); font-size: 1.8rem;
+    }
+    .booking-body { padding: 32px; }
+    .booking-body .form-control, .booking-body .form-select {
+        border-radius: 12px; border: 1px solid #e0e0e0;
+    }
+    .booking-body .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,81,0.15); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="page-header"><div class="container"><h1><i class="fas fa-calendar-check me-2" style="color:var(--gold);"></i>Book Appointment</h1></div></section>
+<div class="container">
+    <div class="booking-card">
+        <div class="doc-banner">
+            {% if doctor.photo %}<img src="{{ doctor.photo.url }}" alt="Dr. {{ doctor.name }}">
+            {% else %}<div class="ph"><i class="fas fa-user-md"></i></div>{% endif %}
+            <div>
+                <h4 style="margin-bottom:4px;">Dr. {{ doctor.name }}</h4>
+                <p class="text-muted mb-1">{{ doctor.get_specialization_display }} · {{ doctor.title }}</p>
+                <span style="font-size:0.85rem;color:var(--gold);font-weight:600;">{{ doctor.consultation_fee }} EGP / visit</span>
+            </div>
+        </div>
+        <div class="booking-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Date</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Time</label>
+                        {{ form.time }}
+                    </div>
+                    {% if form.fields.place.queryset.exists %}
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Location</label>
+                        {{ form.place }}
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Symptoms / Reason</label>
+                        {{ form.symptoms }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Notes (optional)</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-gold w-100 py-3 mt-4"><i class="fas fa-check-circle me-2"></i>Confirm Appointment</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}My Appointments{% endblock %}
+{% block extra_css %}
+<style>
+    .page-header { background: linear-gradient(135deg, var(--dark), #0d3b66); padding: 50px 0 40px; color: white; }
+    .appt-item {
+        background: white; border-radius: var(--radius); padding: 22px;
+        box-shadow: var(--shadow); margin-bottom: 16px;
+        display: flex; align-items: center; gap: 16px; flex-wrap: wrap; transition: all 0.3s;
+    }
+    .appt-item:hover { box-shadow: var(--shadow-lg); }
+    .appt-item img, .appt-item .ph {
+        width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);
+    }
+    .appt-item .ph {
+        display: flex; align-items: center; justify-content: center;
+        background: var(--sand); color: var(--gold); font-size: 1.3rem;
+    }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d1e7dd; color: #0f5132; }
+    .status-cancelled { background: #f8d7da; color: #842029; }
+    .status-completed { background: #cff4fc; color: #055160; }
+</style>
+{% endblock %}
+{% block content %}
+<section class="page-header"><div class="container"><h1><i class="fas fa-stethoscope me-2" style="color:var(--gold);"></i>My Appointments</h1></div></section>
+<div class="container" style="margin-top:30px;">
+    {% for b in bookings %}
+    <div class="appt-item fade-up">
+        {% if b.doctor.photo %}<img src="{{ b.doctor.photo.url }}" alt="Dr. {{ b.doctor.name }}">
+        {% else %}<div class="ph"><i class="fas fa-user-md"></i></div>{% endif %}
+        <div class="flex-grow-1">
+            <h6 style="margin-bottom:2px;"><a href="{% url 'doctor_detail' b.doctor.slug %}" style="color:var(--dark);text-decoration:none;">Dr. {{ b.doctor.name }}</a></h6>
+            <div style="font-size:0.85rem;color:var(--text-light);">
+                {{ b.doctor.get_specialization_display }}
+                {% if b.place %} · {{ b.place.name }}{% endif %}
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">
+                <i class="fas fa-calendar me-1"></i>{{ b.date|date:"M d, Y" }}
+                {% if b.time %} · <i class="fas fa-clock me-1"></i>{{ b.time|time:"H:i" }}{% endif %}
+            </div>
+        </div>
+        <span class="status-badge status-{{ b.status }}">{{ b.get_status_display }}</span>
+    </div>
+    {% empty %}
+    <div class="text-center" style="padding:60px;">
+        <i class="fas fa-stethoscope" style="font-size:4rem;color:var(--gold-light);"></i>
+        <h3 class="mt-3">No Appointments Yet</h3>
+        <p class="text-muted">Book an appointment with a doctor at one of our wellness centers.</p>
+        <a href="{% url 'doctor_list' %}" class="btn btn-gold mt-2"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

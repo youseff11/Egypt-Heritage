@@ -2,12 +2,15 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Homepage
     path('', views.home, name='home'),
 
     # Places
     path('places/', views.place_list, name='place_list'),
     path('places/<slug:slug>/', views.place_detail, name='place_detail'),
+
+    # VR & AR
+    path('places/<slug:slug>/vr/', views.vr_viewer, name='vr_viewer'),
+    path('ar-scanner/', views.ar_scanner, name='ar_scanner'),
 
     # Auth
     path('register/', views.register_view, name='register'),
@@ -28,6 +31,12 @@ urlpatterns = [
     path('book/<slug:slug>/', views.booking_create, name='booking_create'),
     path('bookings/', views.booking_list, name='booking_list'),
     path('bookings/<int:pk>/cancel/', views.booking_cancel, name='booking_cancel'),
+
+    # Doctors
+    path('doctors/', views.doctor_list, name='doctor_list'),
+    path('doctors/<slug:slug>/', views.doctor_detail, name='doctor_detail'),
+    path('doctors/<slug:slug>/book/', views.doctor_booking, name='doctor_booking'),
+    path('my-appointments/', views.my_doctor_bookings, name='my_doctor_bookings'),
 
     # AI Recommendations
     path('recommendations/', views.recommendations, name='recommendations'),
