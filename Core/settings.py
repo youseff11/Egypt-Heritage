@@ -12,6 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
+
 SECRET_KEY = 'django-insecure-fazc!0f!mwz%gz__yg7e!v!^o^9ukkca!u+tctdl*yk@a2k$w!'
 
 DEBUG = True
@@ -63,6 +65,8 @@ WSGI_APPLICATION = 'Core.wsgi.application'
 
 
 # Database
+# https://docs.djangoproject.com/en/stable/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -72,6 +76,8 @@ DATABASES = {
 
 
 # Password validation
+# https://docs.djangoproject.com/en/stable/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -89,6 +95,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
+# https://docs.djangoproject.com/en/stable/topics/i18n/
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Africa/Cairo'
@@ -99,18 +107,29 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-# يفضل إضافة هذا المسار لجمع ملفات الـ Static في بيئة الإنتاج مستقبلاً
+# https://docs.djangoproject.com/en/stable/howto/static-files/
+
+# تم تعديل هذا المسار لتبدأ بشرطة مائلة لضمان عمل الروابط بشكل صحيح
+STATIC_URL = '/static/'
+
+# المجلد الذي تبحث فيه Django عن ملفات الـ Static الخاصة بالتطوير في مشروعك المحلي
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# التعديل الجديد: هذا هو المجلد الذي سيجمع كل ملفات الـ Static (بما فيها الخاصة بالـ Admin) عند تشغيل الأمر collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Auth
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
+
 # Default primary key field type
+# https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
