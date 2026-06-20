@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Egypt Heritage & Wellness Tourism{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Hero ── */
+    .hero {
+        min-height: 100vh;
+        background: linear-gradient(135deg, rgba(26,26,46,0.85), rgba(27,73,101,0.8)),
+                    url('../media/places/100.jpg') center/cover;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-img {
+    width: 100%;
+    height: 320px; /* نفس الارتفاع السابق */
+    object-fit: cover; /* يضمن عدم تمدد أو تشوه الصورة */
+    display: block;
+      }
+    .hero::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(to top, var(--sand-light), transparent);
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+        margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--gold); }
+    .hero p {
+        font-size: 1.15rem;
+        color: rgba(255,255,255,0.85);
+        max-width: 600px;
+        line-height: 1.8;
+        margin-bottom: 32px;
+    }
+    .hero-search {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        padding: 8px;
+        border-radius: 50px;
+        max-width: 560px;
+        display: flex;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .hero-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 12px 24px;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+    }
+    .hero-search input::placeholder { color: rgba(255,255,255,0.6); }
+    .hero-stats {
+        display: flex;
+        gap: 48px;
+        margin-top: 50px;
+    }
+    .hero-stat h3 { color: var(--gold); font-size: 2rem; margin-bottom: 4px; }
+    .hero-stat p { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+    .hero-img-col {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hero-card-stack {
+        position: relative;
+        width: 340px;
+        height: 420px;
+    }
+    .hero-card {
+        position: absolute;
+        width: 280px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        transition: transform 0.5s;
+    }
+    .hero-card img { width: 100%; height: 320px; object-fit: cover; }
+    .hero-card:nth-child(1) { top: 0; left: 0; z-index: 3; transform: rotate(-3deg); }
+    .hero-card:nth-child(2) { top: 30px; left: 50px; z-index: 2; transform: rotate(3deg); }
+    .hero-card:hover { transform: scale(1.05) rotate(0deg); z-index: 10; }
+
+    /* ── Category Cards ── */
+    .cat-card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.3s;
+        box-shadow: var(--shadow);
+        height: 100%;
+    }
+    .cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .cat-card i {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, var(--gold), var(--teal));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .cat-card h5 { font-size: 1rem; color: var(--dark); margin-bottom: 6px; }
+    .cat-card p { font-size: 0.82rem; color: var(--text-light); margin: 0; }
+
+    /* ── Sections ── */
+    .section-padding { padding: 80px 0; }
+    .bg-sand { background: var(--sand); }
+
+    /* ── CTA ── */
+    .cta-section {
+        background: linear-gradient(135deg, var(--blue), var(--dark));
+        padding: 80px 0;
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: rgba(200,169,81,0.1);
+    }
+    .cta-section h2 { color: white; margin-bottom: 16px; }
+
+    @media (max-width: 991px) {
+        .hero h1 { font-size: 2.2rem; }
+        .hero-card-stack { display: none; }
+        .hero-stats { gap: 24px; }
+        .hero-stat h3 { font-size: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                <div class="section-divider" style="background:var(--gold);margin-bottom:24px;"></div>
+                <h1>Discover Egypt's<br><span>Heritage</span> & <span>Wellness</span><br>Treasures</h1>
+                <p>Explore ancient wonders and rejuvenating wellness destinations across Egypt. Plan your perfect journey with AI-powered recommendations.</p>
+                <form class="hero-search" action="{% url 'place_list' %}" method="GET">
+                    <input type="text" name="q" placeholder="Search destinations, heritage sites, wellness...">
+                    <button type="submit" class="btn btn-gold">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </form>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <h3>{{ stats.total_places }}+</h3>
+                        <p>Destinations</p>
+                    </div>
+                    <div class="hero-stat">
+                        <h3>{{ stats.heritage_count }}+</h3>
+                        <p>Heritage Sites</p>
+                    </div>
+                    <div class="hero-stat">
+                        <h3>{{ stats.medical_count }}+</h3>
+                        <p>Wellness Centers</p>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="col-lg-5 hero-img-col d-none d-lg-flex">
+                <div class="hero-card-stack">
+                    <div class="hero-card">
+                        <img src="../media/places/20.jpeg" alt="وصف الصورة الأولى" class="hero-img">
+                    </div>
+                    
+                    <div class="hero-card">
+                        <img src="../media/places/62.jpg" alt="وصف الصورة الثانية" class="hero-img">
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</section>
+
+<!-- Categories -->
+{% if categories %}
+<section class="section-padding">
+    <div class="container">
+        <div class="text-center fade-up">
+            <div class="section-divider mx-auto"></div>
+            <h2 class="section-title">Explore by Category</h2>
+            <p class="section-subtitle">Find your perfect Egyptian experience</p>
+        </div>
+        <div class="row g-4">
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-3 fade-up">
+                <a href="{% url 'place_list' %}?category={{ cat.slug }}" style="text-decoration:none;">
+                    <div class="cat-card">
+                        <i class="{{ cat.icon }}"></i>
+                        <h5>{{ cat.name }}</h5>
+                        <p>{{ cat.places.count }} places</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Places -->
+{% if featured %}
+<section class="section-padding bg-sand">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 fade-up">
+            <div>
+                <div class="section-divider"></div>
+                <h2 class="section-title">Featured Destinations</h2>
+                <p class="section-subtitle mb-0">Hand-picked experiences for unforgettable memories</p>
+            </div>
+            <a href="{% url 'place_list' %}" class="btn btn-outline-gold d-none d-md-inline-block">View All <i class="fas fa-arrow-right ms-2"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for place in featured %}
+            <div class="col-md-6 col-lg-4 fade-up">
+                <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="card-place">
+                        <div class="card-img-wrapper">
+                            {% if place.main_image %}
+                                <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                            {% else %}
+                                <div class="placeholder-img card-img-top">
+                                    <i class="fas {% if place.place_type == 'heritage' %}fa-landmark{% else %}fa-spa{% endif %}"></i>
+                                </div>
+                            {% endif %}
+                            <span class="badge-type badge-{{ place.place_type }}">
+                                {% if place.place_type == 'heritage' %}Heritage{% else %}Wellness{% endif %}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ place.name }}</h5>
+                            <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}, {{ place.governorate }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="rating">
+                                    {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                                    <span class="text-muted ms-1">({{ place.total_reviews }})</span>
+                                </div>
+                                <span class="price-tag">{{ place.price_label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Heritage Section -->
+{% if heritage %}
+<section class="section-padding">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 fade-up">
+            <div>
+                <div class="section-divider"></div>
+                <h2 class="section-title"><i class="fas fa-landmark me-2" style="color:var(--gold);font-size:1.6rem;"></i>Heritage & Archaeological</h2>
+                <p class="section-subtitle mb-0">Walk through thousands of years of history</p>
+            </div>
+            <a href="{% url 'place_list' %}?type=heritage" class="btn btn-outline-gold d-none d-md-inline-block">Explore All</a>
+        </div>
+        <div class="row g-4">
+            {% for place in heritage %}
+            <div class="col-md-6 col-lg-3 fade-up">
+                <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="card-place">
+                        <div class="card-img-wrapper">
+                            {% if place.main_image %}
+                                <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                            {% else %}
+                                <div class="placeholder-img card-img-top"><i class="fas fa-landmark"></i></div>
+                            {% endif %}
+                            <span class="badge-type badge-heritage">Heritage</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ place.name }}</h5>
+                            <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}</p>
+                            <div class="rating mt-2">
+                                {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Medical / Wellness Section -->
+{% if medical %}
+<section class="section-padding bg-sand">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 fade-up">
+            <div>
+                <div class="section-divider" style="background:linear-gradient(90deg, var(--teal), var(--blue-light));"></div>
+                <h2 class="section-title"><i class="fas fa-spa me-2" style="color:var(--teal);font-size:1.6rem;"></i>Wellness & Medical</h2>
+                <p class="section-subtitle mb-0">Rejuvenate your body and soul</p>
+            </div>
+            <a href="{% url 'place_list' %}?type=medical" class="btn btn-outline-gold d-none d-md-inline-block">Explore All</a>
+        </div>
+        <div class="row g-4">
+            {% for place in medical %}
+            <div class="col-md-6 col-lg-3 fade-up">
+                <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="card-place">
+                        <div class="card-img-wrapper">
+                            {% if place.main_image %}
+                                <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                            {% else %}
+                                <div class="placeholder-img card-img-top" style="background:linear-gradient(135deg,#62B6CB33,#2C7DA033);">
+                                    <i class="fas fa-spa" style="color:var(--teal);"></i>
+                                </div>
+                            {% endif %}
+                            <span class="badge-type badge-medical">Wellness</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ place.name }}</h5>
+                            <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}</p>
+                            <div class="rating mt-2">
+                                {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- AI Recommendations -->
+{% if recommended %}
+<section class="section-padding">
+    <div class="container">
+        <div class="text-center fade-up">
+            <div class="section-divider mx-auto"></div>
+            <h2 class="section-title"><i class="fas fa-magic me-2" style="color:var(--gold);"></i>Recommended for You</h2>
+            <p class="section-subtitle">AI-powered picks based on your preferences</p>
+        </div>
+        <div class="row g-4">
+            {% for place in recommended %}
+            <div class="col-md-6 col-lg-3 fade-up">
+                <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="card-place" style="border: 2px solid var(--gold-light);">
+                        <div class="card-img-wrapper">
+                            {% if place.main_image %}
+                                <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                            {% else %}
+                                <div class="placeholder-img card-img-top"><i class="fas fa-star" style="color:var(--gold);"></i></div>
+                            {% endif %}
+                            <span class="badge-type" style="background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;">
+                                <i class="fas fa-robot me-1"></i>AI Pick
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ place.name }}</h5>
+                            <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="rating">
+                                    {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                                </div>
+                                <span class="price-tag">{{ place.price_label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Trending -->
+{% if trending %}
+<section class="section-padding bg-sand">
+    <div class="container">
+        <div class="text-center fade-up">
+            <div class="section-divider mx-auto"></div>
+            <h2 class="section-title"><i class="fas fa-fire me-2" style="color:#e74c3c;"></i>Trending Now</h2>
+            <p class="section-subtitle">Most popular destinations right now</p>
+        </div>
+        <div class="row g-4">
+            {% for place in trending %}
+            <div class="col-md-6 col-lg-4 fade-up">
+                <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="card-place">
+                        <div class="card-img-wrapper">
+                            {% if place.main_image %}
+                                <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                            {% else %}
+                                <div class="placeholder-img card-img-top"><i class="fas fa-fire" style="color:#e74c3c;"></i></div>
+                            {% endif %}
+                            <span class="badge-type badge-{{ place.place_type }}">
+                                {% if place.place_type == 'heritage' %}Heritage{% else %}Wellness{% endif %}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ place.name }}</h5>
+                            <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}, {{ place.governorate }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="rating">
+                                    {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                                </div>
+                                <small class="text-muted"><i class="fas fa-eye me-1"></i>{{ place.views_count }} views</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container position-relative">
+        <h2 class="display-5 fw-bold mb-3">Ready to Explore Egypt?</h2>
+        <p style="font-size:1.1rem;opacity:0.9;max-width:600px;margin:0 auto 30px;">
+            Create your personalized travel itinerary and discover hidden gems across Egypt.
+        </p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'itinerary_create' %}" class="btn btn-gold btn-lg me-3"><i class="fas fa-route me-2"></i>Plan My Trip</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-gold btn-lg me-3"><i class="fas fa-user-plus me-2"></i>Get Started</a>
+        {% endif %}
+        <a href="{% url 'place_list' %}" class="btn btn-outline-gold btn-lg" style="border-color:white;color:white;">Browse All</a>
+    </div>
+</section>
+{% endblock %}

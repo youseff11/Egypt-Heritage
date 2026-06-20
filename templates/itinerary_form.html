@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<style>
+    .page-header { background: linear-gradient(135deg, var(--dark), var(--blue)); padding: 50px 0 40px; color: white; }
+    .form-card {
+        background: white; border-radius: var(--radius); padding: 36px;
+        box-shadow: var(--shadow); max-width: 700px; margin: 30px auto;
+    }
+    .form-card .form-control, .form-card .form-select {
+        border-radius: 12px; border: 1px solid #e0e0e0;
+    }
+    .form-card .form-control:focus, .form-card .form-select:focus {
+        border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<section class="page-header"><div class="container"><h1>{{ title }}</h1></div></section>
+<div class="container">
+    <div class="form-card">
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
+            </div>
+            {% endfor %}
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-gold"><i class="fas fa-save me-2"></i>Save</button>
+                <a href="{% url 'itinerary_list' %}" class="btn btn-outline-gold">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

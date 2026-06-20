@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .dash-header { background: linear-gradient(135deg, var(--dark), #0d1b2a); padding: 50px 0 40px; color: white; }
+    .stat-card {
+        background: white; border-radius: var(--radius); padding: 24px;
+        box-shadow: var(--shadow); text-align: center; transition: all 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .stat-card .icon {
+        width: 56px; height: 56px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px; font-size: 1.4rem;
+    }
+    .stat-card h3 { font-size: 1.8rem; margin-bottom: 4px; color: var(--dark); }
+    .stat-card p { font-size: 0.85rem; color: var(--text-light); margin: 0; }
+    .dash-card {
+        background: white; border-radius: var(--radius); padding: 24px;
+        box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .dash-card h5 { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--sand); }
+    .dash-card h5 i { color: var(--gold); margin-right: 8px; }
+    .dash-table { width: 100%; font-size: 0.88rem; }
+    .dash-table th { background: var(--sand-light); padding: 10px 12px; font-weight: 600; color: var(--dark); }
+    .dash-table td { padding: 10px 12px; border-bottom: 1px solid var(--gray); }
+    .dash-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
+    .dash-nav a {
+        background: white; padding: 10px 20px; border-radius: 12px;
+        text-decoration: none; color: var(--dark); font-weight: 500;
+        box-shadow: var(--shadow); transition: all 0.3s; font-size: 0.9rem;
+    }
+    .dash-nav a:hover, .dash-nav a.active { background: var(--gold); color: var(--dark); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="dash-header"><div class="container">
+    <h1><i class="fas fa-tachometer-alt me-2" style="color:var(--gold);"></i>Admin Dashboard</h1>
+    <p style="opacity:0.8;">Manage your tourism platform</p>
+</div></section>
+<div class="container" style="margin-top:30px;">
+    <div class="dash-nav">
+        <a href="{% url 'admin_dashboard' %}" class="active"><i class="fas fa-chart-bar me-2"></i>Overview</a>
+        <a href="{% url 'admin_places' %}"><i class="fas fa-map-marker-alt me-2"></i>Places</a>
+        <a href="{% url 'admin_users' %}"><i class="fas fa-users me-2"></i>Users</a>
+        <a href="{% url 'admin_bookings' %}"><i class="fas fa-ticket-alt me-2"></i>Bookings</a>
+        <a href="{% url 'admin:index' %}"><i class="fas fa-cog me-2"></i>Django Admin</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:linear-gradient(135deg,#C8A95122,#C8A95144);color:var(--gold);"><i class="fas fa-map-marker-alt"></i></div>
+            <h3>{{ stats.total_places }}</h3><p>Total Places</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:linear-gradient(135deg,#1B496522,#1B496544);color:var(--blue);"><i class="fas fa-users"></i></div>
+            <h3>{{ stats.total_users }}</h3><p>Users</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:linear-gradient(135deg,#2ecc7122,#2ecc7144);color:#2ecc71;"><i class="fas fa-ticket-alt"></i></div>
+            <h3>{{ stats.total_bookings }}</h3><p>Bookings</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:linear-gradient(135deg,#e74c3c22,#e74c3c44);color:#e74c3c;"><i class="fas fa-bell"></i></div>
+            <h3>{{ stats.pending_bookings }}</h3><p>Pending</p>
+        </div></div>
+    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:var(--sand);color:var(--gold);"><i class="fas fa-landmark"></i></div>
+            <h3>{{ stats.heritage_count }}</h3><p>Heritage Sites</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:linear-gradient(135deg,#62B6CB22,#62B6CB44);color:var(--teal);"><i class="fas fa-spa"></i></div>
+            <h3>{{ stats.medical_count }}</h3><p>Wellness Centers</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:#f39c1222;color:#f39c12;"><i class="fas fa-star"></i></div>
+            <h3>{{ stats.total_reviews }}</h3><p>Reviews</p>
+        </div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card">
+            <div class="icon" style="background:#9b59b622;color:#9b59b6;"><i class="fas fa-route"></i></div>
+            <h3>{{ stats.total_itineraries }}</h3><p>Itineraries</p>
+        </div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="dash-card">
+                <h5><i class="fas fa-ticket-alt"></i>Recent Bookings</h5>
+                <table class="dash-table">
+                    <tr><th>User</th><th>Place</th><th>Date</th><th>Status</th></tr>
+                    {% for b in recent_bookings %}
+                    <tr>
+                        <td>{{ b.user.username }}</td>
+                        <td>{{ b.place.name|truncatewords:3 }}</td>
+                        <td>{{ b.date|date:"M d" }}</td>
+                        <td><span class="badge bg-{% if b.status == 'confirmed' %}success{% elif b.status == 'pending' %}warning text-dark{% else %}secondary{% endif %} rounded-pill">{{ b.status }}</span></td>
+                    </tr>
+                    {% empty %}<tr><td colspan="4" class="text-muted text-center">No bookings</td></tr>{% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="dash-card">
+                <h5><i class="fas fa-fire"></i>Top Places</h5>
+                <table class="dash-table">
+                    <tr><th>Place</th><th>Type</th><th>Views</th><th>Rating</th></tr>
+                    {% for p in top_places %}
+                    <tr>
+                        <td>{{ p.name|truncatewords:3 }}</td>
+                        <td><span class="badge badge-{{ p.place_type }}" style="font-size:0.75rem;">{{ p.get_place_type_display }}</span></td>
+                        <td>{{ p.views_count }}</td>
+                        <td><i class="fas fa-star" style="color:var(--gold);"></i> {{ p.rating }}</td>
+                    </tr>
+                    {% empty %}<tr><td colspan="4" class="text-muted text-center">No data</td></tr>{% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, var(--dark), var(--blue));
+        padding: 50px 0 80px;
+        color: white;
+    }
+    .profile-card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 32px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+    }
+    .profile-card h4 {
+        font-size: 1.2rem;
+        color: var(--dark);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--sand);
+    }
+    .profile-card h4 i { color: var(--gold); margin-right: 8px; }
+    .profile-card .form-control, .profile-card .form-select {
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+    }
+    .profile-card .form-control:focus, .profile-card .form-select:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+    }
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    .activity-item:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+{% block content %}
+<section class="profile-header">
+    <div class="container">
+        <h1><i class="fas fa-user-circle me-2" style="color:var(--gold);"></i>My Profile</h1>
+        <p style="opacity:0.8;">Manage your account and preferences</p>
+    </div>
+</section>
+<div class="container" style="margin-top:-50px;">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="profile-card">
+                <h4><i class="fas fa-edit"></i>Edit Profile</h4>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            {{ u_form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            {{ u_form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            {{ p_form.phone }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Bio</label>
+                            {{ p_form.bio }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Interests</label>
+                            {{ p_form.interests }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Budget</label>
+                            {{ p_form.budget }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Language</label>
+                            {{ p_form.preferred_language }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Avatar</label>
+                            {{ p_form.avatar }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gold mt-4"><i class="fas fa-save me-2"></i>Save Changes</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="profile-card">
+                <h4><i class="fas fa-history"></i>Recent Bookings</h4>
+                {% for b in bookings %}
+                <div class="activity-item">
+                    <div>
+                        <strong>{{ b.place.name }}</strong><br>
+                        <small class="text-muted">{{ b.date }}</small>
+                    </div>
+                    <span class="badge bg-{% if b.status == 'confirmed' %}success{% elif b.status == 'pending' %}warning{% else %}secondary{% endif %} rounded-pill">{{ b.status }}</span>
+                </div>
+                {% empty %}<p class="text-muted">No bookings yet.</p>{% endfor %}
+            </div>
+            <div class="profile-card">
+                <h4><i class="fas fa-route"></i>My Itineraries</h4>
+                {% for it in itineraries %}
+                <div class="activity-item">
+                    <a href="{% url 'itinerary_detail' it.pk %}" style="color:var(--dark);text-decoration:none;font-weight:500;">{{ it.title }}</a>
+                    <small class="text-muted">{{ it.num_days }} days</small>
+                </div>
+                {% empty %}<p class="text-muted">No trips planned yet.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

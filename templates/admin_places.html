@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Manage Places{% endblock %}
+{% block extra_css %}
+<style>
+    .dash-header { background: linear-gradient(135deg, var(--dark), #0d1b2a); padding: 50px 0 40px; color: white; }
+    .dash-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
+    .dash-nav a { background: white; padding: 10px 20px; border-radius: 12px; text-decoration: none; color: var(--dark); font-weight: 500; box-shadow: var(--shadow); transition: all 0.3s; font-size: 0.9rem; }
+    .dash-nav a:hover, .dash-nav a.active { background: var(--gold); color: var(--dark); }
+    .place-table { width: 100%; background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .place-table th { background: var(--sand-light); padding: 14px 16px; font-weight: 600; font-size: 0.88rem; }
+    .place-table td { padding: 12px 16px; border-bottom: 1px solid var(--gray); font-size: 0.88rem; vertical-align: middle; }
+    .place-table img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+    .place-table .ph { width: 50px; height: 50px; border-radius: 8px; background: var(--sand); display: flex; align-items: center; justify-content: center; color: var(--gold); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="dash-header"><div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <h1 style="color:white;"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>Manage Places</h1>
+        <a href="{% url 'admin_place_add' %}" class="btn btn-gold"><i class="fas fa-plus me-2"></i>Add Place</a>
+    </div>
+</div></section>
+<div class="container" style="margin-top:30px;">
+    <div class="dash-nav">
+        <a href="{% url 'admin_dashboard' %}"><i class="fas fa-chart-bar me-2"></i>Overview</a>
+        <a href="{% url 'admin_places' %}" class="active"><i class="fas fa-map-marker-alt me-2"></i>Places</a>
+        <a href="{% url 'admin_users' %}"><i class="fas fa-users me-2"></i>Users</a>
+        <a href="{% url 'admin_bookings' %}"><i class="fas fa-ticket-alt me-2"></i>Bookings</a>
+    </div>
+    <div class="table-responsive">
+        <table class="place-table">
+            <tr><th></th><th>Name</th><th>Type</th><th>City</th><th>Rating</th><th>Views</th><th>Featured</th><th>Actions</th></tr>
+            {% for p in places %}
+            <tr>
+                <td>{% if p.main_image %}<img src="{{ p.main_image.url }}">{% else %}<div class="ph"><i class="fas fa-image"></i></div>{% endif %}</td>
+                <td><strong>{{ p.name }}</strong></td>
+                <td><span class="badge badge-{{ p.place_type }}" style="font-size:0.75rem;">{{ p.get_place_type_display }}</span></td>
+                <td>{{ p.city }}</td>
+                <td><i class="fas fa-star" style="color:var(--gold);"></i> {{ p.rating }}</td>
+                <td>{{ p.views_count }}</td>
+                <td>{% if p.is_featured %}<i class="fas fa-check-circle text-success"></i>{% else %}<i class="fas fa-minus-circle text-muted"></i>{% endif %}</td>
+                <td>
+                    <a href="{% url 'admin_place_edit' p.pk %}" class="btn btn-sm btn-outline-gold"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'admin_place_delete' p.pk %}" class="btn btn-sm btn-outline-danger" style="border-radius:25px;"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% empty %}<tr><td colspan="8" class="text-center text-muted py-5">No places yet. Click "Add Place" to create one.</td></tr>{% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}

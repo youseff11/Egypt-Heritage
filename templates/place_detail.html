@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ place.name }} | Egypt Heritage{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-hero {
+        position: relative;
+        height: 450px;
+        overflow: hidden;
+    }
+    .detail-hero img, .detail-hero .placeholder-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .detail-hero::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        background: linear-gradient(to top, var(--sand-light), transparent);
+    }
+    .detail-hero .overlay-info {
+        position: absolute;
+        bottom: 30px;
+        left: 0;
+        right: 0;
+        z-index: 2;
+    }
+    .detail-card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 32px;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+    }
+    .detail-card h3 {
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--sand);
+    }
+    .info-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.95rem;
+    }
+    .info-list li i {
+        width: 20px;
+        color: var(--gold);
+    }
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    .gallery-grid img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .gallery-grid img:hover { transform: scale(1.05); }
+    .review-item {
+        background: var(--sand-light);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    .review-item .stars { color: var(--gold); font-size: 0.85rem; }
+    .review-item .user-info { font-weight: 600; color: var(--dark); }
+    .map-container {
+        border-radius: var(--radius);
+        overflow: hidden;
+        height: 300px;
+    }
+    .map-container iframe { width: 100%; height: 100%; border: 0; }
+    .action-btns .btn { margin-right: 10px; margin-bottom: 10px; }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Image -->
+<div class="detail-hero">
+    {% if place.main_image %}
+        <img src="{{ place.main_image.url }}" alt="{{ place.name }}">
+    {% else %}
+        <div class="placeholder-img" style="font-size:5rem;">
+            <i class="fas {% if place.place_type == 'heritage' %}fa-landmark{% else %}fa-spa{% endif %}"></i>
+        </div>
+    {% endif %}
+    <div class="overlay-info">
+        <div class="container">
+            <span class="badge-type badge-{{ place.place_type }} mb-2" style="display:inline-block;font-size:0.85rem;padding:6px 18px;">
+                {% if place.place_type == 'heritage' %}<i class="fas fa-landmark me-1"></i>Heritage{% else %}<i class="fas fa-spa me-1"></i>Wellness{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="margin-top: -60px; position: relative; z-index: 3;">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" style="font-size:0.85rem;">
+        <a href="{% url 'home' %}">Home</a> /
+        <a href="{% url 'place_list' %}">Explore</a> /
+        <span class="text-muted">{{ place.name }}</span>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="detail-card">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                    <div>
+                        <h1 style="font-size:2rem;margin-bottom:8px;">{{ place.name }}</h1>
+                        {% if place.name_ar %}<p style="font-size:1.1rem;color:var(--text-light);font-family:'Cairo',sans-serif;">{{ place.name_ar }}</p>{% endif %}
+                        <p class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> {{ place.address|default:place.city }}, {{ place.governorate }}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="rating" style="font-size:1.1rem;">
+                            {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                            <span class="ms-1 fw-bold" style="color:var(--dark);">{{ place.rating }}</span>
+                        </div>
+                        <small class="text-muted">{{ place.total_reviews }} review{{ place.total_reviews|pluralize }}</small>
+                    </div>
+                </div>
+
+                <hr style="border-color:var(--sand);">
+
+                <h3><i class="fas fa-info-circle me-2" style="color:var(--gold);"></i>About</h3>
+                <p style="line-height:1.8;">{{ place.description }}</p>
+                {% if place.description_ar %}
+                <p style="line-height:1.8;font-family:'Cairo',sans-serif;direction:rtl;text-align:right;background:var(--sand-light);padding:16px;border-radius:10px;">{{ place.description_ar }}</p>
+                {% endif %}
+            </div>
+
+            {% if place.historical_info %}
+            <div class="detail-card">
+                <h3><i class="fas {% if place.place_type == 'heritage' %}fa-scroll{% else %}fa-notes-medical{% endif %} me-2" style="color:var(--gold);"></i>
+                    {% if place.place_type == 'heritage' %}Historical Information{% else %}Medical & Wellness Information{% endif %}
+                </h3>
+                <p style="line-height:1.8;">{{ place.historical_info }}</p>
+                {% if place.historical_info_ar %}
+                <p style="line-height:1.8;font-family:'Cairo',sans-serif;direction:rtl;text-align:right;background:var(--sand-light);padding:16px;border-radius:10px;">{{ place.historical_info_ar }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if gallery %}
+            <div class="detail-card">
+                <h3><i class="fas fa-images me-2" style="color:var(--gold);"></i>Gallery</h3>
+                <div class="gallery-grid">
+                    {% for img in gallery %}
+                    <img src="{{ img.image.url }}" alt="{{ img.caption|default:place.name }}">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Map -->
+            <div class="detail-card">
+                <h3><i class="fas fa-map-marked-alt me-2" style="color:var(--gold);"></i>Location</h3>
+                <div class="map-container">
+                    <iframe src="https://maps.google.com/maps?q={{ place.latitude }},{{ place.longitude }}&z=14&output=embed" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="detail-card">
+                <h3><i class="fas fa-comments me-2" style="color:var(--gold);"></i>Reviews ({{ reviews.count }})</h3>
+
+                {% if user.is_authenticated and not user_review %}
+                <form method="POST" class="mb-4 p-3" style="background:var(--sand-light);border-radius:12px;">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Your Rating</label>
+                        {{ review_form.rating }}
+                    </div>
+                    <div class="mb-3">
+                        {{ review_form.comment }}
+                    </div>
+                    <button type="submit" name="submit_review" class="btn btn-gold"><i class="fas fa-paper-plane me-2"></i>Submit Review</button>
+                </form>
+                {% elif not user.is_authenticated %}
+                <p class="text-muted mb-4"><a href="{% url 'login' %}?next={{ request.path }}" style="color:var(--gold);">Login</a> to write a review.</p>
+                {% endif %}
+
+                {% for review in reviews %}
+                <div class="review-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="user-info"><i class="fas fa-user-circle me-2" style="color:var(--gold);"></i>{{ review.user.first_name|default:review.user.username }}</span>
+                        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="stars mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <p style="margin:0;font-size:0.95rem;">{{ review.comment }}</p>
+                </div>
+                {% empty %}
+                <p class="text-muted">No reviews yet. Be the first!</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Info -->
+            <div class="detail-card">
+                <h3><i class="fas fa-clipboard-list me-2" style="color:var(--gold);"></i>Quick Info</h3>
+                <ul class="info-list list-unstyled">
+                    <li><i class="fas fa-tag"></i> <strong>Type:</strong>&nbsp; {{ place.get_place_type_display }}</li>
+                    {% if place.category %}<li><i class="fas fa-folder"></i> <strong>Category:</strong>&nbsp; {{ place.category.name }}</li>{% endif %}
+                    <li><i class="fas fa-running"></i> <strong>Activity:</strong>&nbsp; {{ place.get_activity_type_display }}</li>
+                    <li><i class="fas fa-coins"></i> <strong>Budget:</strong>&nbsp; {{ place.price_label }}</li>
+                    {% if place.entry_fee %}<li><i class="fas fa-ticket-alt"></i> <strong>Entry:</strong>&nbsp; {{ place.entry_fee }} EGP</li>{% endif %}
+                    {% if place.opening_hours %}<li><i class="fas fa-clock"></i> <strong>Hours:</strong>&nbsp; {{ place.opening_hours }}</li>{% endif %}
+                    {% if place.phone %}<li><i class="fas fa-phone"></i> <strong>Phone:</strong>&nbsp; {{ place.phone }}</li>{% endif %}
+                    <li><i class="fas fa-eye"></i> <strong>Views:</strong>&nbsp; {{ place.views_count }}</li>
+                </ul>
+                {% if place.website %}
+                <a href="{{ place.website }}" target="_blank" class="btn btn-outline-gold btn-sm w-100 mt-2"><i class="fas fa-globe me-2"></i>Visit Website</a>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="detail-card">
+                <h3><i class="fas fa-bolt me-2" style="color:var(--gold);"></i>Actions</h3>
+                <div class="action-btns">
+                    <a href="{% url 'booking_create' place.slug %}" class="btn btn-gold w-100 mb-3">
+                        <i class="fas fa-calendar-check me-2"></i>Book Now
+                    </a>
+
+                    {% if user.is_authenticated and user_itineraries %}
+                    <form method="POST" action="{% url 'add_to_itinerary' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="place_id" value="{{ place.id }}">
+                        <div class="mb-2">
+                            <select name="itinerary_id" class="form-select form-select-sm" style="border-radius:10px;">
+                                {% for it in user_itineraries %}
+                                <option value="{{ it.id }}">{{ it.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="number" name="day_number" value="1" min="1" class="form-control form-control-sm" style="border-radius:10px;width:80px;" placeholder="Day">
+                            <button type="submit" class="btn btn-blue btn-sm flex-grow-1"><i class="fas fa-plus me-1"></i>Add to Trip</button>
+                        </div>
+                    </form>
+                    {% elif user.is_authenticated %}
+                    <a href="{% url 'itinerary_create' %}" class="btn btn-outline-gold btn-sm w-100"><i class="fas fa-route me-2"></i>Create Itinerary First</a>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-gold btn-sm w-100"><i class="fas fa-sign-in-alt me-2"></i>Login to Plan Trip</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if place.video_url %}
+            <div class="detail-card">
+                <h3><i class="fas fa-play-circle me-2" style="color:var(--gold);"></i>Video</h3>
+                <div style="border-radius:12px;overflow:hidden;">
+                    <iframe width="100%" height="220" src="{{ place.video_url }}" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Related -->
+            {% if related %}
+            <div class="detail-card">
+                <h3><i class="fas fa-th-large me-2" style="color:var(--gold);"></i>Related Places</h3>
+                {% for p in related %}
+                <a href="{% url 'place_detail' p.slug %}" style="text-decoration:none;color:inherit;">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-2" style="background:var(--sand-light);border-radius:12px;transition:all 0.3s;">
+                        {% if p.main_image %}
+                            <img src="{{ p.main_image.url }}" alt="{{ p.name }}" style="width:65px;height:65px;object-fit:cover;border-radius:10px;">
+                        {% else %}
+                            <div style="width:65px;height:65px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--sand);color:var(--gold);font-size:1.3rem;">
+                                <i class="fas {% if p.place_type == 'heritage' %}fa-landmark{% else %}fa-spa{% endif %}"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h6 style="margin:0;font-size:0.9rem;">{{ p.name }}</h6>
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ p.city }}</small>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

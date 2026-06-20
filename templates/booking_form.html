@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Book {{ place.name }}{% endblock %}
+{% block extra_css %}
+<style>
+    .page-header { background: linear-gradient(135deg, var(--dark), var(--blue)); padding: 50px 0 40px; color: white; }
+    .booking-card {
+        background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+        overflow: hidden; max-width: 800px; margin: 30px auto;
+    }
+    .booking-place {
+        background: var(--sand-light); padding: 24px; display: flex; align-items: center; gap: 20px;
+        border-bottom: 2px solid var(--sand);
+    }
+    .booking-place img, .booking-place .ph {
+        width: 100px; height: 100px; object-fit: cover; border-radius: 14px;
+    }
+    .booking-place .ph {
+        display: flex; align-items: center; justify-content: center;
+        background: var(--sand); color: var(--gold); font-size: 2rem;
+    }
+    .booking-form { padding: 32px; }
+    .booking-form .form-control, .booking-form .form-select {
+        border-radius: 12px; border: 1px solid #e0e0e0;
+    }
+    .booking-form .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,81,0.15); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="page-header"><div class="container"><h1><i class="fas fa-calendar-check me-2" style="color:var(--gold);"></i>Book Your Visit</h1></div></section>
+<div class="container">
+    <div class="booking-card">
+        <div class="booking-place">
+            {% if place.main_image %}<img src="{{ place.main_image.url }}" alt="{{ place.name }}">
+            {% else %}<div class="ph"><i class="fas {% if place.place_type == 'heritage' %}fa-landmark{% else %}fa-spa{% endif %}"></i></div>{% endif %}
+            <div>
+                <h4 style="margin-bottom:4px;">{{ place.name }}</h4>
+                <p class="text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i>{{ place.city }}, {{ place.governorate }}</p>
+                {% if place.entry_fee %}<span class="price-tag"><i class="fas fa-ticket-alt me-1"></i>{{ place.entry_fee }} EGP / person</span>{% endif %}
+            </div>
+        </div>
+        <div class="booking-form">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Date</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Time</label>
+                        {{ form.time }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Number of Guests</label>
+                        {{ form.num_guests }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Estimated Total</label>
+                        <div class="form-control" style="background:var(--sand-light);font-weight:700;color:var(--gold);">
+                            {{ place.entry_fee }} EGP &times; guests
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Notes (optional)</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-gold w-100 py-3 mt-4"><i class="fas fa-check-circle me-2"></i>Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

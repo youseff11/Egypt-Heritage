@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<style>
+    .dash-header { background: linear-gradient(135deg, var(--dark), #0d1b2a); padding: 50px 0 40px; color: white; }
+    .form-card {
+        background: white; border-radius: var(--radius); padding: 36px;
+        box-shadow: var(--shadow); margin-top: 30px;
+    }
+    .form-card .form-control, .form-card .form-select {
+        border-radius: 12px; border: 1px solid #e0e0e0;
+    }
+    .form-card .form-control:focus, .form-card .form-select:focus {
+        border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+    }
+    .form-section { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid var(--sand); }
+    .form-section h5 { color: var(--dark); margin-bottom: 16px; }
+    .form-section h5 i { color: var(--gold); margin-right: 8px; }
+</style>
+{% endblock %}
+{% block content %}
+<section class="dash-header"><div class="container"><h1>{{ title }}</h1></div></section>
+<div class="container">
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-section">
+                <h5><i class="fas fa-info-circle"></i>Basic Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-semibold">Name (EN)</label>{{ form.name }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Name (AR)</label>{{ form.name_ar }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Type</label>{{ form.place_type }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Category</label>{{ form.category }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Activity</label>{{ form.activity_type }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Price Level</label>{{ form.price_level }}</div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h5><i class="fas fa-align-left"></i>Description</h5>
+                <div class="row g-3">
+                    <div class="col-12"><label class="form-label fw-semibold">Description (EN)</label>{{ form.description }}</div>
+                    <div class="col-12"><label class="form-label fw-semibold">Description (AR)</label>{{ form.description_ar }}</div>
+                    <div class="col-12"><label class="form-label fw-semibold">Historical/Medical Info</label>{{ form.historical_info }}</div>
+                    <div class="col-12"><label class="form-label fw-semibold">Historical/Medical Info (AR)</label>{{ form.historical_info_ar }}</div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h5><i class="fas fa-map-marker-alt"></i>Location</h5>
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label fw-semibold">City</label>{{ form.city }}</div>
+                    <div class="col-md-4"><label class="form-label fw-semibold">Governorate</label>{{ form.governorate }}</div>
+                    <div class="col-md-4"><label class="form-label fw-semibold">Address</label>{{ form.address }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Latitude</label>{{ form.latitude }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Longitude</label>{{ form.longitude }}</div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h5><i class="fas fa-cog"></i>Details & Media</h5>
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label fw-semibold">Entry Fee (EGP)</label>{{ form.entry_fee }}</div>
+                    <div class="col-md-4"><label class="form-label fw-semibold">Opening Hours</label>{{ form.opening_hours }}</div>
+                    <div class="col-md-4"><label class="form-label fw-semibold">Phone</label>{{ form.phone }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Website</label>{{ form.website }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Video URL</label>{{ form.video_url }}</div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Main Image</label><input type="file" name="main_image" class="form-control" accept="image/*"></div>
+                    <div class="col-md-3"><label class="form-label fw-semibold">Rating</label>{{ form.rating }}</div>
+                    <div class="col-md-3 d-flex align-items-end gap-4">
+                        <div class="form-check"><label class="form-check-label">{{ form.is_featured }} Featured</label></div>
+                        <div class="form-check"><label class="form-check-label">{{ form.is_trending }} Trending</label></div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-gold"><i class="fas fa-save me-2"></i>Save Place</button>
+                <a href="{% url 'admin_places' %}" class="btn btn-outline-gold">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

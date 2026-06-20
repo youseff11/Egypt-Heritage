@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}AI Recommendations{% endblock %}
+{% block extra_css %}
+<style>
+    .rec-header {
+        background: linear-gradient(135deg, var(--dark), #1a1a4e);
+        padding: 60px 0 50px; color: white; text-align: center;
+    }
+    .rec-header h1 { color: white; }
+    .rec-header .ai-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), #D4AF37);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 20px; font-size: 2rem; color: var(--dark);
+    }
+    .rec-note {
+        background: linear-gradient(135deg, var(--gold-light)22, var(--sand));
+        border-left: 4px solid var(--gold); border-radius: 0 12px 12px 0;
+        padding: 16px 24px; margin-bottom: 32px; font-size: 0.92rem;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<section class="rec-header">
+    <div class="container">
+        <div class="ai-icon"><i class="fas fa-robot"></i></div>
+        <h1>AI Recommendations</h1>
+        <p style="opacity:0.85;max-width:600px;margin:0 auto;">Personalized picks powered by your preferences and travel history</p>
+    </div>
+</section>
+<div class="container" style="margin-top:30px;">
+    {% if user.is_authenticated %}
+    <div class="rec-note">
+        <i class="fas fa-magic me-2" style="color:var(--gold);"></i>
+        These recommendations are based on your <strong>{{ user.profile.get_interests_display }}</strong> interests and <strong>{{ user.profile.get_budget_display }}</strong> budget preference.
+        <a href="{% url 'profile' %}" style="color:var(--gold);margin-left:8px;">Update Preferences</a>
+    </div>
+    {% else %}
+    <div class="rec-note">
+        <i class="fas fa-info-circle me-2" style="color:var(--gold);"></i>
+        <a href="{% url 'login' %}" style="color:var(--gold);font-weight:600;">Sign in</a> to get personalized recommendations based on your preferences.
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        {% for place in places %}
+        <div class="col-md-6 col-lg-4 fade-up">
+            <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                <div class="card-place" style="border:2px solid var(--gold-light);">
+                    <div class="card-img-wrapper">
+                        {% if place.main_image %}<img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                        {% else %}<div class="placeholder-img card-img-top"><i class="fas fa-star" style="color:var(--gold);"></i></div>{% endif %}
+                        <span class="badge-type" style="background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;"><i class="fas fa-robot me-1"></i>AI Pick</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ place.name }}</h5>
+                        <p class="location"><i class="fas fa-map-marker-alt me-1"></i>{{ place.city }}, {{ place.governorate }}</p>
+                        <p style="font-size:0.85rem;color:var(--text-light);">{{ place.description|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="rating">{% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}</div>
+                            <span class="price-tag">{{ place.price_label }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center" style="padding:60px 20px;">
+            <i class="fas fa-robot" style="font-size:4rem;color:var(--gold-light);"></i>
+            <h3 class="mt-3">No Recommendations Yet</h3>
+            <p class="text-muted">We need more data to personalize your experience. Start exploring!</p>
+            <a href="{% url 'place_list' %}" class="btn btn-gold mt-2">Explore Places</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

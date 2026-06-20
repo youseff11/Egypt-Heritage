@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Destinations{% endblock %}
+
+{% block extra_css %}
+<style>
+    .explore-header {
+        background: linear-gradient(135deg, var(--dark), var(--blue));
+        padding: 50px 0 40px;
+        color: white;
+        margin-bottom: 0;
+    }
+    .explore-header h1 { color: white; font-size: 2.2rem; }
+    .filter-panel {
+        background: white;
+        border-radius: 0 0 var(--radius) var(--radius);
+        padding: 24px 30px;
+        box-shadow: var(--shadow);
+        margin-bottom: 40px;
+    }
+    .filter-panel .form-select, .filter-panel .form-control {
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        font-size: 0.9rem;
+        padding: 10px 14px;
+    }
+    .filter-panel .form-select:focus, .filter-panel .form-control:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+    }
+    .results-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .results-count { color: var(--text-light); font-size: 0.95rem; }
+    .no-results {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    .no-results i { font-size: 4rem; color: var(--gold-light); margin-bottom: 20px; }
+    .pagination .page-link {
+        color: var(--blue);
+        border: none;
+        border-radius: 10px;
+        margin: 0 3px;
+        font-weight: 500;
+    }
+    .pagination .page-item.active .page-link {
+        background: var(--gold);
+        color: var(--dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="explore-header">
+    <div class="container">
+        <h1><i class="fas fa-compass me-2"></i>Explore Destinations</h1>
+        <p style="opacity:0.8;">Discover heritage sites and wellness destinations across Egypt</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="filter-panel">
+        <form method="GET" action="{% url 'place_list' %}" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold" style="font-size:0.85rem;">Search</label>
+                    <input type="text" name="q" class="form-control" placeholder="Search places..." value="{{ q }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:0.85rem;">Type</label>
+                    <select name="type" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        <option value="heritage" {% if current_type == 'heritage' %}selected{% endif %}>Heritage</option>
+                        <option value="medical" {% if current_type == 'medical' %}selected{% endif %}>Wellness</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:0.85rem;">Category</label>
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:0.85rem;">Budget</label>
+                    <select name="price" class="form-select" onchange="this.form.submit()">
+                        <option value="">Any Budget</option>
+                        <option value="1" {% if current_price == '1' %}selected{% endif %}>Budget</option>
+                        <option value="2" {% if current_price == '2' %}selected{% endif %}>Mid-Range</option>
+                        <option value="3" {% if current_price == '3' %}selected{% endif %}>Luxury</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:0.85rem;">Sort By</label>
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="-rating" {% if current_sort == '-rating' %}selected{% endif %}>Top Rated</option>
+                        <option value="entry_fee" {% if current_sort == 'entry_fee' %}selected{% endif %}>Price: Low</option>
+                        <option value="-entry_fee" {% if current_sort == '-entry_fee' %}selected{% endif %}>Price: High</option>
+                        <option value="-views_count" {% if current_sort == '-views_count' %}selected{% endif %}>Most Popular</option>
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>A-Z</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-gold w-100"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="results-info">
+        <span class="results-count">
+            <i class="fas fa-map-marked-alt me-1"></i>
+            {{ places.paginator.count }} destination{{ places.paginator.count|pluralize }} found
+        </span>
+        {% if q %}<a href="{% url 'place_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill">Clear Search</a>{% endif %}
+    </div>
+
+    {% if places %}
+    <div class="row g-4">
+        {% for place in places %}
+        <div class="col-md-6 col-lg-4 fade-up">
+            <a href="{% url 'place_detail' place.slug %}" style="text-decoration:none;color:inherit;">
+                <div class="card-place">
+                    <div class="card-img-wrapper">
+                        {% if place.main_image %}
+                            <img src="{{ place.main_image.url }}" class="card-img-top" alt="{{ place.name }}">
+                        {% else %}
+                            <div class="placeholder-img card-img-top">
+                                <i class="fas {% if place.place_type == 'heritage' %}fa-landmark{% else %}fa-spa{% endif %}"></i>
+                            </div>
+                        {% endif %}
+                        <span class="badge-type badge-{{ place.place_type }}">
+                            {% if place.place_type == 'heritage' %}Heritage{% else %}Wellness{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ place.name }}</h5>
+                        <p class="location"><i class="fas fa-map-marker-alt me-1"></i> {{ place.city }}, {{ place.governorate }}</p>
+                        <p style="font-size:0.85rem;color:var(--text-light);margin-top:8px;">{{ place.description|truncatewords:18 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="rating">
+                                {% for s in place.stars_range %}<i class="fas fa-star"></i>{% endfor %}
+                                <span class="text-muted ms-1">({{ place.total_reviews }})</span>
+                            </div>
+                            <span class="price-tag">{{ place.price_label }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if places.has_other_pages %}
+    <nav class="mt-5 d-flex justify-content-center">
+        <ul class="pagination">
+            {% if places.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ places.previous_page_number }}&q={{ q }}&type={{ current_type }}&category={{ current_category }}&price={{ current_price }}&sort={{ current_sort }}"><i class="fas fa-chevron-left"></i></a></li>
+            {% endif %}
+            {% for num in places.paginator.page_range %}
+            <li class="page-item {% if places.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&q={{ q }}&type={{ current_type }}&category={{ current_category }}&price={{ current_price }}&sort={{ current_sort }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if places.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ places.next_page_number }}&q={{ q }}&type={{ current_type }}&category={{ current_category }}&price={{ current_price }}&sort={{ current_sort }}"><i class="fas fa-chevron-right"></i></a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>No destinations found</h3>
+        <p class="text-muted">Try adjusting your search or filters</p>
+        <a href="{% url 'place_list' %}" class="btn btn-gold mt-3">View All Destinations</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
